@@ -1,4 +1,4 @@
-import json, os, time, requests, argparse, time
+import argparse, json, os, time, requests, socket, time
 
 import nibbler
 
@@ -55,7 +55,7 @@ if __name__ == '__main__':
     slave_location = args.slave
     
     # get hostname from env variable
-    hostname = os.environ['HOSTNAME']
+    hostname = socket.gethostname()
 
     monitor_endpoint = 'http://%s/%s' % (slave_location, args.slave_monitor)
     metrics_endpoint = 'http://%s/%s' % (slave_location, args.slave_metrics)
