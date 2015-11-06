@@ -122,8 +122,8 @@ if __name__ == '__main__':
 
                 influx_samples.append({
                     "name": "cpu_usage",
-                    "columns": ["value", "slave_id", "framework_id", "executor_id"],
-                    "points": [[cpu_usage, slave_id, framework_id, executor_id]]
+                    "columns": ["value", "slave_id", "framework_id", "executor_id", "hostname"],
+                    "points": [[cpu_usage, slave_id, framework_id, executor_id, hostname]]
                 })
 
                 influx_samples.extend(nibbler.influxdb_entries_from_object(slave_id, framework_id, executor_id, sample['statistics']))
@@ -161,8 +161,8 @@ if __name__ == '__main__':
         for metric in metrics:
             influx_samples.append({
                 "name": metric,
-                "columns": ["value", "slave_id", "source"],
-                "points": [[metrics[metric], slave_id, "slave"]]
+                "columns": ["value", "slave_id", "source", "hostname"],
+                "points": [[metrics[metric], slave_id, "slave", hostname]]
             })
 
         # Send samples if collected.
