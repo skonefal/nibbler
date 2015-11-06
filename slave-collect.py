@@ -1,4 +1,4 @@
-import json, time, requests, argparse, time
+import json, os, time, requests, argparse, time
 
 import nibbler
 
@@ -30,11 +30,11 @@ def validate_statistics_sample(sample):
     return True
 
 
-def executor_metric(influx_samples, metric, value, slave_id, framework_id, executor_id):
+def executor_metric(influx_samples, metric, value, slave_id, framework_id, executor_id, hostname):
     influx_samples.append({
         "name": metric,
-        "columns": ["value", "slave_id", "framework_id", "executor_id"],
-        "points": [[value, slave_id, framework_id, executor_id]]
+        "columns": ["value", "slave_id", "framework_id", "executor_id", "hostname"],
+        "points": [[value, slave_id, framework_id, executor_id, hostname]]
     })
 
 if __name__ == '__main__':
@@ -53,6 +53,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     slave_location = args.slave
+    
+    # get hostname from env variable
+    hostname = os.environ['HOSTNAME']
 
     monitor_endpoint = 'http://%s/%s' % (slave_location, args.slave_monitor)
     metrics_endpoint = 'http://%s/%s' % (slave_location, args.slave_metrics)
@@ -127,11 +130,11 @@ if __name__ == '__main__':
 
                 # Compute slack CPU.
                 cpu_slack = sample['statistics']['cpus_limit'] - cpu_usage
-                executor_metric(influx_samples, "cpu_slack", cpu_slack, slave_id, framework_id, executor_id)
+                executor_metric(influx_samples, "cpu_slack", cpu_slack, slave_id, framework_id, executor_id, hostname)
 
                 # Compute slack memory.
                 mem_slack = sample['statistics']['mem_limit_bytes'] - sample['statistics']['mem_rss_bytes']
-                executor_metric(influx_samples, "mem_slack", mem_slack, slave_id, framework_id, executor_id)
+                executor_metric(influx_samples, "mem_slack", mem_slack, slave_id, framework_id, executor_id, hostname)
 
                 # Compute IPC.
                 if 'perf' in sample['statistics'] and 'perf' in prev['statistics']:
@@ -146,10 +149,10 @@ if __name__ == '__main__':
                         cpi = float(cycles) / float(instructions)
                         ips = float(instructions) / float(perf['duration'])
 
-                        executor_metric(influx_samples, "ipc", ipc, slave_id, framework_id, executor_id)
-                        executor_metric(influx_samples, "cpi", cpi, slave_id, framework_id, executor_id)
-                        executor_metric(influx_samples, "cpi2", cpi * cpi, slave_id, framework_id, executor_id)
-                        executor_metric(influx_samples, "ips", ips, slave_id, framework_id, executor_id)
+                        executor_metric(influx_samples, "ipc", ipc, slave_id, framework_id, executor_id, hostname)
+                        executor_metric(influx_samples, "cpi", cpi, slave_id, framework_id, executor_id, hostname)
+                        executor_metric(influx_samples, "cpi2", cpi * cpi, slave_id, framework_id, executor_id, hostname)
+                        executor_metric(influx_samples, "ips", ips, slave_id, framework_id, executor_id, hostname)
 
             samples[framework_id][executor_id] = sample
 
